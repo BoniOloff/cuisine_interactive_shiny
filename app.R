@@ -25,15 +25,9 @@ ui <- fluidPage(
         # Main Panel
         mainPanel(
            tabsetPanel(
-               tabPanel("Word Cloud",
-                        d3wordcloudOutput("word_cloud")
-                        ),
-               tabPanel("Plot",
-                        plotly::plotlyOutput("plot")
-                        ),
-               tabPanel("Table",
-                        DTOutput("table")
-                        )
+               tabPanel("Word Cloud", d3wordcloudOutput("word_cloud")),
+               tabPanel("Plot", plotly::plotlyOutput("plot")),
+               tabPanel("Table", DTOutput("table"))
            )
         )
     )
@@ -44,6 +38,10 @@ server <- function(input, output) {
         tfidf_data %>% 
             filter(cuisine == input$cuisine) %>% 
             arrange(desc(nb_recipes))
+    })
+    
+    output$word_cloud <- renderD3wordcloud({
+        d3wordcloud(tfidf_data$Ingredient, tfidf_data$tf_idf, tooltip = TRUE)
     })
 }
 
