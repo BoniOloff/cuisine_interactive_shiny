@@ -5,9 +5,10 @@ library(d3wordcloud)
 library(plotly)
 
 data <- readRDS("recipes.rds")
+
 data <- data %>% 
-    tidyr::unnest_longer(col = ingredients, values_to = "Ingredient") %>% 
-    select(-id)
+    tidyr::unnest_longer(col = ingredients, values_to = "Ingredient")
+
 tfidf_data <- data %>% 
     count(cuisine, Ingredient, name = "nb_recipes") %>% 
     tidytext::bind_tf_idf(Ingredient, cuisine, nb_recipes)
@@ -18,7 +19,7 @@ ui <- fluidPage(
     sidebarLayout(
         # Sidebar Panel
         sidebarPanel(
-            selectInput("cuisine", "Cuisine:", choices = unique(data$cuisine)),
+            selectInput("cuisine", "Cuisine:", choices = unique(tfidf_data$cuisine)),
             sliderInput("number_ingredients", "Number of Ingredients", 10, 100, 20)
         ),
 
@@ -34,6 +35,14 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
+    top_ingredients <- reactive({
+        tfidf_data %>% 
+            filter(cuisine == input$cuisine) %>% 
+            arrange(desc(tf_idf)) %>% 
+            head(input$number_ingredients) %>% 
+            mutate(Ingredient = forcats::fct_reorder(Ingredient, tf_idf))
+    })
+    
     output$table <- renderDT({
         tfidf_data %>% 
             filter(cuisine == input$cuisine) %>% 
@@ -41,13 +50,16 @@ server <- function(input, output) {
     })
     
     output$word_cloud <- renderD3wordcloud({
-        d3wordcloud(tfidf_data$Ingredient, tfidf_data$tf_idf, tooltip = TRUE)
+        d <- top_ingredients()
+        d3wordcloud(d$Ingredient, d$nb_recipes, tooltip = TRUE)
     })
     
     output$plot <- renderPlotly({
-        tfidf_data %>% 
+        d <- top_ingredients()
+        d %>% 
             ggplot(mapping = aes(x = Ingredient, y = tf_idf)) +
             geom_col() +
+            labs(x = "", y = "TF-IDF", title = "Top Important Ingredients") +
             coord_flip()
     })
 }
