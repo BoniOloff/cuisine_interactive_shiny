@@ -5,7 +5,12 @@ library(d3wordcloud)
 library(plotly)
 
 data <- readRDS("recipes.rds")
-data <- tidyr::unnest_longer(data = data, col = "ingredients", values_to = "ing")
+data <- data %>% 
+    tidyr::unnest_longer(col = ingredients, values_to = "Ingredient") %>% 
+    select(-id)
+tfidf_data <- data %>% 
+    count(cuisine, Ingredient, name = "nb_recipes") %>% 
+    tidytext::bind_tf_idf(Ingredient, cuisine, nb_recipes)
 
 ui <- fluidPage(
     titlePanel("Cuisine Explorer"),
@@ -14,7 +19,7 @@ ui <- fluidPage(
         # Sidebar Panel
         sidebarPanel(
             selectInput("cuisine", "Cuisine:", choices = unique(data$cuisine)),
-            sliderInput("number_ingredients", "Number of Ingredients", 0, 100, 20)
+            sliderInput("number_ingredients", "Number of Ingredients", 10, 100, 20)
         ),
 
         # Main Panel
@@ -35,7 +40,11 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
-
+    output$table <- renderDT({
+        tfidf_data %>% 
+            filter(cuisine == input$cuisine) %>% 
+            arrange(desc(nb_recipes))
+    })
 }
 
 shinyApp(ui = ui, server = server)
