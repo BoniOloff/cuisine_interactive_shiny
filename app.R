@@ -43,6 +43,13 @@ server <- function(input, output) {
     output$word_cloud <- renderD3wordcloud({
         d3wordcloud(tfidf_data$Ingredient, tfidf_data$tf_idf, tooltip = TRUE)
     })
+    
+    output$plot <- renderPlotly({
+        tfidf_data %>% 
+            ggplot(mapping = aes(x = Ingredient, y = tf_idf)) +
+            geom_col() +
+            coord_flip()
+    })
 }
 
 shinyApp(ui = ui, server = server)
