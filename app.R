@@ -20,7 +20,8 @@ ui <- fluidPage(
         # Sidebar Panel
         sidebarPanel(
             selectInput("cuisine", "Cuisine:", choices = unique(tfidf_data$cuisine)),
-            sliderInput("number_ingredients", "Number of Ingredients", 10, 100, 20)
+            sliderInput("number_ingredients", "Number of Ingredients", 10, 100, 20),
+            actionButton('show_about', 'About')
         ),
 
         # Main Panel
@@ -61,6 +62,11 @@ server <- function(input, output) {
             geom_col() +
             labs(x = "", y = "TF-IDF", title = "Top Important Ingredients") +
             coord_flip()
+    })
+    
+    text_about <- "More description here: https://github.com/BoniOloff/cuisine_interactive_shiny"
+    observeEvent(input$show_about, {
+        showModal(modalDialog(text_about, title = 'About'))
     })
 }
 
