@@ -5,6 +5,7 @@ library(d3wordcloud)
 library(plotly)
 
 data <- readRDS("recipes.rds")
+data <- tidyr::unnest_longer(data = data, col = "ingredients", values_to = "ing")
 
 ui <- fluidPage(
     titlePanel("Cuisine Explorer"),
