@@ -1,6 +1,7 @@
 theme: jekyll-theme-cayman
 title: Cuisine Interactive Shiny
 description: Interactive web app implemented in Shiny.
+show_more: true
 github:
   home_url: https://bonioloff.github.io/
   demo_url: https://bonioloff.shinyapps.io/cuisine_interactive_shiny/
